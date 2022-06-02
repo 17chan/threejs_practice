@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r127/three.min.js"></script>
+    <script src="index.js"></script>
+    <script type="text/javascript"
+        src="https://cdn.jsdelivr.net/npm/three@0.101.1/examples/js/controls/OrbitControls.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r17/Stats.min.js"></script>
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
+</head>
+
+
+<body>
+
+    <div id="myCanvas">
+    </div>
+
+    <div style="display:none">
+        <svg xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="1152px"
+            height="1152px" xml:space="preserve">
+            <g>
+                <path id="sphere"
+                    d="M 135.31547,185.20833 85.41609,162.06552 36.331154,186.88904 42.921517,132.28039 4.1448691,93.268727 58.117318,82.661534 l 25.119651,-48.93405 26.766441,48.053047 54.30145,8.768754 -37.42988,40.305605 z" />
+            </g>
+        </svg>
+    </div>
+
+
+    <!-- Javascript code that runs our Three.js examples -->
+    <script type="text/javascript">
+        // ページの読み込みを待つ
+        window.addEventListener('load', init);
+
+        function init() {
+
+
+            // レンダラーを作成
+            const renderer = new THREE.WebGLRenderer();
+            renderer.setClearColor(new THREE.Color(0xFDFDFD));
+            //sceneの大きさの通知
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+
+
+            // シーンを作成
+            const scene = new THREE.Scene();
+
+            // カメラを作成
+            const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 2000);
+            camera.position.set(200, 200, 650);
+            camera.userZoom = false; 
+            const controls = new THREE.OrbitControls(camera, document.body);
+
+            // 滑らかにカメラコントローラーを制御する
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.2;
+
+            //svgの変換
+            //svgのパスをとってくる
+            const svgString = document.querySelector("#sphere").getAttribute("d");
+
+            //パスからシェイプに変換
+            const shape = transformSVGPathExposed(svgString);
+
+            // console.log(svgString);
+            //console.log(shape);
+
+            const options = {
+                amount: 10,
+                bevelThickness: 20,
+                bevelSize: 2,
+                bevelSegments: 3,
+                bevelEnabled: true,
+                curveSegments: 12,
+                steps: 1
+            };
+
+
+
+            //shapeからジオメトリに変換
+            const geometory = new THREE.ExtrudeGeometry(shape, options);
+            const meshMaterial = new THREE.MeshLambertMaterial({
+                color: 0xf21170,
+                opacity: 0.8,
+                transparent: true,
+                side: THREE.DoubleSide,
+            });
+            const mesh = new THREE.Mesh(geometory, meshMaterial);
+            scene.add(mesh);
+
+            // スポッドライト(色, 光の強さ, 距離, 照射角, ボケ具合, 減衰率)
+            const spotLight = new THREE.SpotLight(0xffffff);
+            spotLight.position.set(100, 100, 450);
+            spotLight.castShadow = true;
+            scene.add(spotLight);
+
+            document.getElementById("myCanvas").appendChild(renderer.domElement);
+
+            tick();
+
+            // 毎フレーム時に実行されるループイベントです
+            function tick() {
+
+                mesh.rotation.y += 0.01;
+                renderer.render(scene, camera); // レンダリング
+
+                requestAnimationFrame(tick);
+            }
+
+        // gridHelper 
+        gridHelper = new THREE.GridHelper(500, 50,0xffff00) //大きさ・分割数・センタラインcolor・マスカラ―
+        scene.add(gridHelper);
+
+        // axisHelper
+        axisHelper = new THREE.AxisHelper(50);  // 軸のサイズ
+        scene.add(axisHelper);
+        }
+
+    </script>
+</body>
+
+</html>
